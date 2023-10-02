@@ -1,3 +1,3 @@
 # rabbitmq
 
-Wrapper for github.com/streadway/amqp
+Wrapper for github.com/rabbitmq/amqp091-go

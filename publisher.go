@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"sync"
 
-	"github.com/streadway/amqp"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 const DEFAULT_MESSAGE_CONTENT_TYPE = "text/plain"
@@ -27,7 +27,7 @@ type Publisher struct {
 	configConnection ConfigConnection
 	configPublisher  ConfigPublisher
 
-	channel          *amqp.Channel
+	channel          *amqp091.Channel
 	connection       *Connection
 }
 
@@ -46,14 +46,14 @@ func (this *Publisher) SetConnection(connection *Connection) *Publisher {
 	return this
 }
 
-func (this *Publisher) SetChannel(channel *amqp.Channel) *Publisher {
+func (this *Publisher) SetChannel(channel *amqp091.Channel) *Publisher {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	this.channel = channel
 	return this
 }
 
-func (this *Publisher) Channel() (*amqp.Channel, error) {
+func (this *Publisher) Channel() (*amqp091.Channel, error) {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	if this.channel == nil {
@@ -70,7 +70,7 @@ func (this *Publisher) Channel() (*amqp.Channel, error) {
 }
 
 func (this *Publisher) Disconnected(e error) bool {
-	if amqpError, ok := e.(*amqp.Error); ok && (amqpError.Code == amqp.ChannelError) {
+	if amqpError, ok := e.(*amqp091.Error); ok && (amqpError.Code == amqp091.ChannelError) {
 		return true
 	}
 	return false
@@ -87,7 +87,7 @@ func (this *Publisher) Publish(body []byte, opts ...PublishOption) error {
 		RoutingKey: this.configPublisher.RoutingKey,
 		Mandatory: this.configPublisher.Mandatory,
 		Immediate: this.configPublisher.Immediate,
-		Message: amqp.Publishing{
+		Message: amqp091.Publishing{
 			ContentType: DEFAULT_MESSAGE_CONTENT_TYPE,
 			Body: body,
 		},
@@ -111,8 +111,8 @@ type Publish struct {
 	Mandatory  bool
 	Immediate  bool
 
-	// https://pkg.go.dev/github.com/streadway/amqp#Publishing
-	Message    amqp.Publishing
+	// https://pkg.go.dev/github.com/rabbitmq/amqp091-go#Publishing
+	Message    amqp091.Publishing
 }
 
 type PublishOption func(*Publish)

@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"sync"
 
-	"github.com/streadway/amqp"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 func NewQueue(cfg ConfigQueue) *Queue {
@@ -19,7 +19,7 @@ type Queue struct {
 	configQueue      ConfigQueue
 
 	connection       *Connection
-	channel          *amqp.Channel
+	channel          *amqp091.Channel
 }
 
 func (this *Queue) ConfigQueue(cfg ConfigQueue) *Queue {
@@ -37,14 +37,14 @@ func (this *Queue) SetConnection(connection *Connection) *Queue {
 	return this
 }
 
-func (this *Queue) SetChannel(channel *amqp.Channel) *Queue {
+func (this *Queue) SetChannel(channel *amqp091.Channel) *Queue {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	this.channel = channel
 	return this
 }
 
-func (this *Queue) Channel() (*amqp.Channel, error) {
+func (this *Queue) Channel() (*amqp091.Channel, error) {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	if this.channel == nil {
@@ -60,13 +60,13 @@ func (this *Queue) Channel() (*amqp.Channel, error) {
 	return this.channel, nil
 }
 
-func (this *Queue) Declare() (*amqp.Queue, error) {
+func (this *Queue) Declare() (*amqp091.Queue, error) {
 	channel, channelError := this.Channel()
 	if channelError != nil {
 		return nil, channelError
 	}
 
-        if e := amqp.Table(this.configQueue.Args).Validate(); e != nil {
+        if e := amqp091.Table(this.configQueue.Args).Validate(); e != nil {
                 return nil, e
         }
 
@@ -84,7 +84,7 @@ func (this *Queue) Declare() (*amqp.Queue, error) {
 	return &queue, nil
 }
 
-func (this *Queue) GetInfo() (*amqp.Queue, error) {
+func (this *Queue) GetInfo() (*amqp091.Queue, error) {
 	channel, channelError := this.Channel()
 	if channelError != nil {
 		return nil, channelError

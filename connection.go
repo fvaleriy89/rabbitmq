@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"sync"
 
-	"github.com/streadway/amqp"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 func NewConnection(cfg ConfigConnection) *Connection {
@@ -16,8 +16,8 @@ type Connection struct {
 	cfg        ConfigConnection
 
 	mx         sync.Mutex
-	connection *amqp.Connection
-	channels   []*amqp.Channel
+	connection *amqp091.Connection
+	channels   []*amqp091.Channel
 }
 
 func (this *Connection) Connect() error {
@@ -26,7 +26,7 @@ func (this *Connection) Connect() error {
 	if this.connection != nil {
 		return ErrorAlreadyConnected
 	}
-	connection, connectionError := amqp.Dial(this.cfg.Url())
+	connection, connectionError := amqp091.Dial(this.cfg.Url())
 	if connectionError != nil {
 		return connectionError
 	}
@@ -34,7 +34,7 @@ func (this *Connection) Connect() error {
 	return nil
 }
 
-func (this *Connection) GetChannel() (*amqp.Channel, error) {
+func (this *Connection) GetChannel() (*amqp091.Channel, error) {
 	if this == nil {
 		return nil, ErrorMissedConnection
 	}
@@ -53,12 +53,12 @@ func (this *Connection) GetChannel() (*amqp.Channel, error) {
 	return channel, nil
 }
 
-func (this *Connection) CloseChannel(toclose *amqp.Channel) error {
+func (this *Connection) CloseChannel(toclose *amqp091.Channel) error {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	for pos, channel := range this.channels {
 		if toclose == channel {
-			newchannels := make([]*amqp.Channel, len(this.channels)-1)
+			newchannels := make([]*amqp091.Channel, len(this.channels)-1)
 			copy(newchannels[:pos], this.channels[:pos])
 			copy(newchannels[pos:], this.channels[pos+1:])
 

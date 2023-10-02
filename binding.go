@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"sync"
 
-	"github.com/streadway/amqp"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 func NewBinding() *Binding {
@@ -20,7 +20,7 @@ type Binding struct {
 	configBinding    ConfigBinding
 
 	connection       *Connection
-	channel          *amqp.Channel
+	channel          *amqp091.Channel
 }
 
 
@@ -39,14 +39,14 @@ func (this *Binding) SetConnection(connection *Connection) *Binding {
 	return this
 }
 
-func (this *Binding) SetChannel(channel *amqp.Channel) *Binding {
+func (this *Binding) SetChannel(channel *amqp091.Channel) *Binding {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	this.channel = channel
 	return this
 }
 
-func (this *Binding) Channel() (*amqp.Channel, error) {
+func (this *Binding) Channel() (*amqp091.Channel, error) {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	if this.channel == nil {

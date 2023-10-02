@@ -78,7 +78,7 @@ type ConfigPublisher struct {
 
 func (c ConfigConnection) Url() string {
 	return fmt.Sprintf(
-		"amqp://%s:%s@%s:%d%s",
+		"amqp091.//%s:%s@%s:%d%s",
 		c.Login,
 		c.Password,
 		c.Host,

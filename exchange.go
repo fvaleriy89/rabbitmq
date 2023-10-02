@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"sync"
 
-	"github.com/streadway/amqp"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 func NewExchange() *Exchange {
@@ -20,7 +20,7 @@ type Exchange struct {
 	configExchange   ConfigExchange
 
 	connection       *Connection
-	channel          *amqp.Channel
+	channel          *amqp091.Channel
 }
 
 func (this *Exchange) ConfigConnection(cfg ConfigConnection) *Exchange {
@@ -38,14 +38,14 @@ func (this *Exchange) SetConnection(connection *Connection) *Exchange {
 	return this
 }
 
-func (this *Exchange) SetChannel(channel *amqp.Channel) *Exchange {
+func (this *Exchange) SetChannel(channel *amqp091.Channel) *Exchange {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	this.channel = channel
 	return this
 }
 
-func (this *Exchange) Channel() (*amqp.Channel, error) {
+func (this *Exchange) Channel() (*amqp091.Channel, error) {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	if this.channel == nil {
@@ -67,7 +67,7 @@ func (this *Exchange) Declare() error {
 		return channelError
 	}
 
-	if e := amqp.Table(this.configExchange.Args).Validate(); e != nil {
+	if e := amqp091.Table(this.configExchange.Args).Validate(); e != nil {
 		return e
 	}
 

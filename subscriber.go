@@ -5,7 +5,7 @@ import (
 	"time"
 	"sync"
 
-	"github.com/streadway/amqp"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 const WARNING_DURATION time.Duration = 100 * time.Millisecond
@@ -42,7 +42,7 @@ type Subscriber struct {
 	configConsumer     ConfigConsumer
 	configConflicts    ConfigConflicts
 
-	channel            *amqp.Channel
+	channel            *amqp091.Channel
 	connection         *Connection
 	resolver           ConflictResolver // *resolver
 	parsers            []ProcessableParser
@@ -61,7 +61,7 @@ func (this *Subscriber) SetConnection(connection *Connection) *Subscriber {
 	return this
 }
 
-func (this *Subscriber) SetChannel(channel *amqp.Channel) *Subscriber {
+func (this *Subscriber) SetChannel(channel *amqp091.Channel) *Subscriber {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	this.channel = channel
@@ -120,7 +120,7 @@ func (this *Subscriber) CheckLocks(errfn func(string), infofn func(string)) erro
 	return nil
 }
 
-func (this *Subscriber) Channel() (*amqp.Channel, error) {
+func (this *Subscriber) Channel() (*amqp091.Channel, error) {
 	this.mx.Lock()
 	defer this.mx.Unlock()
 	if this.channel == nil {
@@ -167,7 +167,7 @@ func (this *Subscriber) consume(cfg ConfigConsumer) error {
 		return channelError
 	}
 
-	if e := amqp.Table(cfg.Args).Validate(); e != nil {
+	if e := amqp091.Table(cfg.Args).Validate(); e != nil {
 		return e
 	}
 
@@ -190,7 +190,7 @@ func (this *Subscriber) consume(cfg ConfigConsumer) error {
 	return nil
 }
 
-func (this *Subscriber) processing(cfg ConfigConsumer, msgs <-chan amqp.Delivery) {
+func (this *Subscriber) processing(cfg ConfigConsumer, msgs <-chan amqp091.Delivery) {
 	for msg := range msgs {
 		started := time.Now()
 		processingError := this.process(msg)
@@ -213,7 +213,7 @@ func (this *Subscriber) processing(cfg ConfigConsumer, msgs <-chan amqp.Delivery
 	this.errors <- fmt.Errorf(`Consumer "%s" finished processing`, cfg.Consumer)
 }
 
-func (this *Subscriber) process(msg amqp.Delivery) error {
+func (this *Subscriber) process(msg amqp091.Delivery) error {
 	entity, parsingError := this.parse(msg)
 	if parsingError != nil {
 		return parsingError
@@ -236,7 +236,7 @@ func (this *Subscriber) process(msg amqp.Delivery) error {
 	return nil
 }
 
-func (this *Subscriber) parse(msg amqp.Delivery) (ProcessableEntity, error) {
+func (this *Subscriber) parse(msg amqp091.Delivery) (ProcessableEntity, error) {
 	for _, p := range this.parsers {
 		if p.Match(msg.RoutingKey) {
 			return p.Parse(msg.RoutingKey, msg.Body)
